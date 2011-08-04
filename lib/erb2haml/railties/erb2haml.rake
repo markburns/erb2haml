@@ -10,13 +10,13 @@ def color(text, begin_text_style)
 end
 
 namespace :haml do
-  desc "Perform bulk conversion of all html.erb files to Haml in views folder."
-  task :convert_erbs do
+  desc "Perform bulk conversion of all html.erb files to Haml in views folder then git mv file.erb to file.haml"
+  task :destructive_convert_with_git do
 
     if `which html2haml`.empty?
       puts "#{color "ERROR: ", RED_FG} Could not find " +
          "#{color "html2haml", GREEN_FG} in your PATH. Aborting."
-      exit(false) 
+      exit(false)
     end
 
     puts "Looking for #{color "ERB", GREEN_FG} files to convert to " +
@@ -31,6 +31,13 @@ namespace :haml do
 
           if system("html2haml", path, haml_path)
             puts color("Done!", GREEN_FG)
+            command = "mv #{haml_path} #{path}"
+            puts command
+            system command
+            puts ("Renaming...\ngit mv #{haml_path}")
+            command = "git mv #{path} #{haml_path}"
+            system command
+            exit -1
           else
             puts color("Failed!", RED_FG)
           end
