@@ -32,12 +32,8 @@ namespace :haml do
           if system("html2haml", path, haml_path)
             puts color("Done!", GREEN_FG)
             command = "mv #{haml_path} #{path}"
-            puts command
             system command
-            puts ("Renaming...\ngit mv #{haml_path}")
-            command = "git mv #{path} #{haml_path}"
-            system command
-            exit -1
+
           else
             puts color("Failed!", RED_FG)
           end
@@ -46,6 +42,32 @@ namespace :haml do
 
       end
     end
+    system "git add app/views/**/*.erb"
+
+    puts "Conversion complete, view the diff, commit, and then perform a rename to haml with\nrake haml:rename_files"
+
   end #End rake task
+
+
+  desc "Rename files to haml files after conversion"
+
+  task :rename_files do
+    puts "Looking for #{color "ERB", GREEN_FG} files to rename to " +
+      "#{color("Haml", RED_FG)}..."
+
+    Find.find("app/views/") do |path|
+      if FileTest.file?(path) and path.downcase.match(/\.html\.erb$/i)
+        haml_path = path.slice(0...-3)+"haml"
+
+        unless FileTest.exists?(haml_path)
+          print "Moving: #{path}... "
+
+          command = "git mv #{path} #{haml_path}"
+          system command
+        end
+      end
+    end
+    puts "Renaming complete, you can commit the files or if you want to cancel:\ngit reset, or git git reset --hard HEAD^ to go back to the previous commit"
+  end
 end # End of :haml namespace
 
